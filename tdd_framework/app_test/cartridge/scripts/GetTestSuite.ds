@@ -1,0 +1,21 @@
+﻿/* 
+*  	@input TestSuiteName : String
+*	@output TestSuite : Object
+*/
+
+importPackage(dw.system);
+importPackage(dw.util);
+
+importScript("LogError.ds");
+importScript("TestSuiteFactory.ds");
+
+function execute(args) {
+	try {
+		var suite = TestSuiteFactory.getTestSuite(args.TestSuiteName);
+		args.TestSuite = suite;
+		return PIPELET_NEXT;
+	} catch (e) {
+		LogError("GetTestSuite.ds", e, args);
+		throw e;
+	};
+};

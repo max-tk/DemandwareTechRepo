@@ -1,0 +1,24 @@
+<iscontent type="text/xml" charset="UTF-8" compact="false"/>
+<isscript>
+var result = <root></root>,
+	index = 0;
+	
+result.passed = pdict.TestSuite.passed;
+result.totalElapsed = pdict.TestSuite.totalElapsed;
+result.scriptlog = pdict.TestSuite.scriptlog;
+result.tests = <tests />;
+
+for each(let test in pdict.TestSuite.tests) {
+	result.tests.test += <test/>;
+	result.tests.test[index].passed = test.passed;
+	result.tests.test[index].elapsed = test.elapsed;
+	if (test.exception) {
+		result.tests.test[index].exception = <exception/>;
+		for (let p in test.exception) {
+			result.tests.test[index].exception[p] = test.exception[p]; 
+		}; 
+	};
+	index++;	
+}
+out.print(result)
+</isscript>

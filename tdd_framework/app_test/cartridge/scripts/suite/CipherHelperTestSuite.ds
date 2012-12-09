@@ -1,0 +1,111 @@
+﻿importPackage(dw.system);
+importPackage(dw.util);
+importPackage(dw.net);
+importPackage(dw.web);
+importPackage(dw.crypto);
+
+importScript("Assert.ds");
+importScript("TestSuiteBase.ds");
+
+importScript("app_demo:CipherHelper.ds");
+
+function CipherHelperTestSuite() {
+	let suite = TestSuiteBase();
+
+	suite.getName = function () {
+		return "Cipher Helper Test Suite";
+	};
+
+	suite.tests = [{
+		"name": "CipherHelper_encrypt_should_succeed",
+		"category": "Happy",
+		"ignore": false,
+		"run": function () {
+			let stringToEncrpt = "testing",
+				actual = CipherHelper.encrypt(stringToEncrpt),
+				expected = "TCpsF6doaxE=";			
+				
+			//Logger.debug("This is a message written to the scriplog via the Logger.debug() statement");			
+			//Assert.fail("opps!");	
+			
+			Assert.areEqual(expected, actual);
+		}
+	}, {
+		"name": "CipherHelper_decrypt_should_succeed",
+		"category": "Happy",
+		"ignore": false,
+		"run": function () {
+			let stringToDecrypt = "TCpsF6doaxE=",
+				actual = CipherHelper.decrypt(stringToDecrypt),
+				expected = "testing";
+			Assert.areEqual(expected, actual);
+		}
+	}, {
+		"name": "CipherHelper_encrypt_null_string_should_return_null_string",
+		"category": "Happy",
+		"ignore": false,
+		"run": function () {
+			let stringToDecrypt = null,
+				expected = null,
+				actual = CipherHelper.encrypt(stringToDecrypt);
+			
+			//Logger.debug("This is a message written with Logger.debug()");
+			//Assert.fail("opps!");
+			
+			Assert.areEqual(expected, actual, "Encrypted string was not null");
+		}
+	}, {
+		"name": "CipherHelper_encrypt_empty_string_should_return_empty_string",
+		"category": "Happy",
+		"ignore": false,
+		"run": function () {
+			let stringToDecrypt = "",
+				expected = "",
+				actual = CipherHelper.encrypt(stringToDecrypt);
+			Assert.areEqual(expected, actual, "Encrypted string was not null");
+		}
+	}, {
+		"name": "CipherHelper_decrypt_null_string_should_return_null_string",
+		"category": "Happy",
+		"ignore": false,
+		"run": function () {
+			let stringToDecrypt = null,
+				actual = CipherHelper.decrypt(stringToDecrypt),
+				expected = null;
+			Assert.areEqual(expected, actual);
+		}
+	}, {
+		"name": "CipherHelper_decrypt_empty_string_should_return_empty_string",
+		"category": "Happy",
+		"ignore": false,
+		"run": function () {
+			let stringToDecrypt = "",
+				actual = CipherHelper.decrypt(stringToDecrypt),
+				expected = "";
+			Assert.areEqual(expected, actual);
+		}
+	}, {
+		"name": "CipherHelper_encrypt_10kb_string_100_times_should_succeed",
+		"category": "Happy",
+		"ignore": false,
+		"run": function () {
+			for (let i = 0; i < 100; i++) {
+				let secureRandom = new SecureRandom(),
+					stringToEncrypt = StringUtils.encodeBase64(secureRandom.nextBytes(10240).toString()); //10kb = 10240 bytes
+				CipherHelper.encrypt(stringToEncrypt);
+			};
+		}
+	}, {
+		"name": "CipherHelper_decrypt_bad_format_string_should_return_null",
+		"category": "Happy",
+		"ignore": false,
+		"run": function () {
+			let stringToDecrypt = "Unencrypted String",
+				actual = CipherHelper.decrypt(stringToDecrypt),
+				expected = null;
+			Assert.areEqual(expected, actual);
+		}
+	}];
+
+	return suite;
+};

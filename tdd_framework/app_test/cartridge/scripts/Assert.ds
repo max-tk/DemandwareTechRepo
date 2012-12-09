@@ -1,0 +1,99 @@
+﻿importPackage(dw.system);
+importPackage(dw.util);
+
+function Assert() {};
+
+(function () {
+	//START: Private members
+	keys = function (obj) {
+		var keys = new Array();
+		for (k in obj) if (obj.hasOwnProperty(k)) keys.push(k);
+		return keys;
+	};
+	//END: Private members
+
+	Assert.isTrue = function (condition, message) {
+		if (!condition) {
+			if ((message || "").indexOf("Assert.") != -1) {
+				throw Error(message);
+			}
+			throw Error("Assert.isTrue(): " + (message || ""));
+		};
+	};
+
+	Assert.isEmpty = function (value, name, message) {
+		this.isTrue(empty(value), StringUtils.format("Assert.isEmpty(): {0} was not empty! {1}", (name || "object"), message ? "\n" + message : ""));
+	}
+
+	Assert.isNotEmpty = function (value, name, message) {
+		this.isTrue(!empty(value), StringUtils.format("Assert.isNotEmpty(): {0} was empty! {1}", (name || "object"), message ? "\n" + message : ""));
+	};
+
+	Assert.isNotNull = function (value, name, message) {
+		this.isTrue(value != null, StringUtils.format("Assert.isNotNull(): {0} was null! {1}", (name || "object"), message ? "\n" + message : ""));
+	};
+
+	Assert.isNull = function (value, name, message) {
+		this.isTrue(value == null, StringUtils.format("Assert.isNull(): {0} was not null! {1}", (name || "object"), message ? "\n" + message : ""));
+	};
+
+	Assert.areEqual = function (expected, actual, message) {
+		this.isTrue(expected == actual, StringUtils.format("Assert.areEqual(): Expected: {0} Actual: {1} {2}", expected, actual, message ? "\n" + message : ""));
+	};
+
+	Assert.isUUID = function (value, name, message) {
+		var uuidregex = /^(\{){0,1}[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}(\}){0,1}$/;
+		this.isTrue(uuidregex.test(value), StringUtils.format("Assert.isUUID(): {0} with value [{1}] is not in canonical UUID format.\nUUID format should contain 32 digits with 4 dashes (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx) {2}", name, value, message ? "\n" + message : ""));
+	};
+
+	Assert.isNotEmptyUUID = function (value, name, message) {
+		this.isTrue(value != "00000000-0000-0000-0000-000000000000", StringUtils.format("Assert.isNotEmptyUUID(): {0} with value [{1}] is an empty UUID. {2}", name, value, message ? "\n" + message : ""));
+	};
+
+	Assert.fail = function (message) {
+		this.isTrue(false, StringUtils.format("Assert.fail(): {0}", message || ""));
+	};
+
+	Assert.hasProperties = function (value, name, message) {
+		this.isTrue(keys(value).length > 0, StringUtils.format("Assert.hasProperties(): {0} does not have properties {1}", name, message ? "\n" + message : ""));
+	};
+
+	Assert.isEmail = function (value, name, message) {
+		var message = StringUtils.format("Assert.isEmail(): [{0}] with a value of [{1}] is not a valid email address {2}", name, value, message ? "\n" + message : "");
+		this.isTrue(/^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i.test(value), message);
+	};
+
+	Assert.isValidUSZip = function (value, name, message) {
+		var message = StringUtils.format("Assert.isValidUSZip(): [{0}] with a value of [{1}] is not a valid zip code {2}", name, value, message ? "\n" + message : "");
+		this.isTrue(/^\d{5}(-\d{4})?$/.test(value), message);
+	};
+
+	Assert.isGreaterThan = function (expected, actual, message) {
+		this.isTrue(actual > expected, StringUtils.format("Assert.isGreaterThan(): Actual: {0} was not greater than expected {1} {2}", actual, expected, message ? "\n" + message : ""));
+	};
+
+	Assert.isNumber = function (value, name, message) {
+		this.isTrue(!isNaN(value), StringUtils.format("Assert.isNumber(): {0} is not a number! value: {1} {2}", name, value, message ? "\n" + message : ""));
+	};
+
+	Assert.isInRange = function (value, min, max, name, message) {
+		this.isTrue((value >= min) && (value <= max), StringUtils.format("Assert.isInRange(): {0} with value {1} is not within range of min: {2} and max: {3} {4}", name, value, min, max, message ? "\n" + message : ""));
+	};
+
+	Assert.contains = function (value, collection, message) {
+		if (!('length' in collection)) {
+			throw new Error("Assert.Contains: the 'collection' parameter must be an Array type");
+		}
+		this.isTrue(collection.indexOf(value) != -1, StringUtils.format("Assert.Contains: {0} is not contained in the collection! {1}", value, message ? "\n" + message : ""));
+	};
+
+	Assert.isFunction = function (fn, message) {
+		this.isTrue(typeof fn == "function", StringUtils.format("Assert.isFunction(): {0} is not a function! {1} ", fn, message ? "\n" + message : ""));
+	};
+
+	Assert.isArray = function (arr, message) {
+		this.isTrue(Object.prototype.toString.call(arr) === "[object Array]", StringUtils.format("Assert.isArray(): {0} is not an Array! {1} ", arr, message ? "\n" + message : ""));
+	};
+
+	return Assert;
+})();

@@ -1,0 +1,100 @@
+importPackage(dw.system);
+importPackage(dw.util);
+
+function TestSuiteBase() {
+	return {
+		"tests": [],
+		"run": function (testToRun) {
+			var totalElapsed = 0,
+				startTime = null,
+				endTime = null,
+				errorMessage = null,
+				test = null,
+				elapsed = null,
+				testRegex = null;
+
+			for (var testIndex = 0; testIndex < this.tests.length; testIndex++) {							
+				test = this.tests[testIndex];
+													
+				if ((testToRun !== -1) && (testToRun !== testIndex)) {
+					test.ignore = true;
+				};
+
+				startTime = new Date();
+				
+				try {
+					if (test.ignore) {
+						continue;
+					};
+					
+					try {
+						if (this.testSetup) {
+							this.testSetup();
+						};
+
+						test.run();
+					} finally {
+						if (this.testTearDown) {
+							this.testTearDown();
+						};
+					};
+
+					test.passed = true;		
+								
+				} catch (e) {
+					errorMessage = StringUtils.rtrim(e.message);
+					if ((typeof test.expectedError != "undefined") && test.expectedError) {
+						if (typeof test.expectedError == "string") {
+							test.passed = (errorMessage === test.expectedError);
+							if (!test.passed) {
+								e.message += StringUtils.format("\nExpected message: [{0}] but it was [{1}]", test.expectedError, errorMessage);
+							};
+						} else if (test.expectedError.toString()[0] === "/") {
+							testRegex = test.expectedError;
+							if (testRegex.test(errorMessage)) {
+								test.passed = true;
+							} else {
+								test.passed = false;
+								e.message += StringUtils.format("\nRegex test failed - Error message: [{0}] regex: [{1}]", errorMessage, test.expectedError);
+							};
+						} else {
+							test.passed = true;
+						};
+					} else {
+						test.passed = false;
+					};
+					if (!test.passed) {
+						test.exception = e;
+					};
+				} finally {
+					endTime = new Date();
+					elapsed = endTime.getTime() - startTime.getTime();
+					test.elapsed = elapsed.toFixed();
+					totalElapsed += elapsed;										
+				};
+			};			
+			
+			this.tests = this.tests.filter(function(test) {
+				return !test.ignore;
+			}).map(function(test) {
+				var t = {
+					"passed": test.passed, 
+					"elapsed": test.elapsed
+				};				
+				
+				if (!test.passed && test.exception) {
+					t.exception = test.exception;
+				};					
+				return t;
+			});			
+			
+			this.totalElapsed = totalElapsed.toFixed();
+			
+			this.passed = this.tests.filter(function(test) {
+				return test.passed;
+			}).length === this.tests.length;
+			
+			return this;
+		}		
+	};
+};

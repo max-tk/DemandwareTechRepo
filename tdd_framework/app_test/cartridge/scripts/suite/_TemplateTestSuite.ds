@@ -1,0 +1,32 @@
+﻿importPackage(dw.system);
+importPackage(dw.util);
+importPackage(dw.net);
+importPackage(dw.web);
+importPackage(dw.crypto);
+
+importScript("Assert.ds");
+importScript("TestSuiteBase.ds");
+
+//Add any importScript() statements here if testing a script
+
+function [TEST_SUITE_NAME_GOES_HERE]TestSuite() {
+	let suite = TestSuiteBase();
+
+	suite.getName = function () {
+		return "TEST_SUITE_DISPLAY_NAME_GOES_HERE";
+	};
+
+	suite.tests = [{
+		"name": "TEST_NAME_GOES_HERE",
+		"category": "Happy",		
+		"run": function () {
+			//Arrange
+			
+			//Act
+			
+			//Assert			
+		}
+	}];
+
+	return suite;
+};

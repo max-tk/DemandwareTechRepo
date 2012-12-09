@@ -1,0 +1,39 @@
+﻿importPackage(dw.system);
+importPackage(dw.catalog);
+importPackage(dw.util);
+importPackage(dw.crypto);
+
+function CipherHelper() {};
+
+(function () {
+
+	//-------------------------------------------------------------------------------------
+	//Description:
+	//	Encryts a string 
+	//-------------------------------------------------------------------------------------
+	CipherHelper.encrypt = function (stringToEncrypt) {
+		if (stringToEncrypt) {
+			return new Cipher().encrypt(stringToEncrypt, "test123#", 'PBEWithMD5AndDES/CBC/PKCS5Padding', null, 1);
+		} else {
+			return stringToEncrypt;
+		}
+	};
+
+	//-------------------------------------------------------------------------------------
+	//Description:
+	//	Decrypts a string
+	//-------------------------------------------------------------------------------------
+	CipherHelper.decrypt = function (stringToDecrypt) {
+		if (stringToDecrypt) {
+			try {
+				return new Cipher().decrypt(stringToDecrypt, "test123#", 'PBEWithMD5AndDES/CBC/PKCS5Padding', null, 1);
+			} catch (err) {
+				return null;
+			}
+		} else {
+			return stringToDecrypt;
+		}
+	};
+	
+	return CipherHelper;
+})();

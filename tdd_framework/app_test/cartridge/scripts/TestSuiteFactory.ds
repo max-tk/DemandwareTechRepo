@@ -1,0 +1,17 @@
+importPackage(dw.system);
+importPackage(dw.util);
+
+importScript("Assert.ds");
+
+var globalObject = this;
+
+function TestSuiteFactory() {};
+
+(function () {
+	TestSuiteFactory.getTestSuite = function (suiteName) {
+		Assert.isNotNull(suiteName, "suiteName");
+		importScript("suite/" + suiteName + ".ds");
+		return globalObject[suiteName]();
+	};
+	return TestSuiteFactory;
+})();

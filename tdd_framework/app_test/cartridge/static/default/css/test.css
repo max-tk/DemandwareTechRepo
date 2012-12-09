@@ -1,0 +1,13 @@
+html {font-size:100%; overflow-y: scroll;}
+
+body {background: url(../images/bg-gradient.jpg) repeat-x; font-family:Arial, Helvetica, Verdana, sans-serif; font-size:62.5%; color:#444444; margin:5px 0 0 0; }
+
+table th { text-align: center; font-weight: bold; }
+
+tr:hover {background-color:yellow;}
+
+td:hover {background-color:white;}
+
+.title { text-align: center; font-weight: bold; font-size: 36px}
+
+.secondTitle { text-align: center; font-weight: bold; font-size: 18px}

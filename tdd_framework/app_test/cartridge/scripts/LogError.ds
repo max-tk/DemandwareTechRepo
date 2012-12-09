@@ -1,0 +1,16 @@
+﻿importPackage(dw.system);
+
+function LogError(funcName, error, args) {
+	Logger.debug("----------------------------------------------------------------------------------------------------------------");
+	Logger.debug("Function Name: {0}", funcName);
+	Logger.debug("----------------------------------------------------------------------------------------------------------------");
+	Logger.debug("Error:");
+	for (let p in error) {
+		Logger.debug("\t{0} : {1}", p, error[p]);
+	};
+	Logger.debug("----------------------------------------------------------------------------------------------------------------");
+	Logger.debug("args:");
+	for (let p in args) {
+		Logger.debug("\t{0} : {1}", p, args[p]);
+	};
+};

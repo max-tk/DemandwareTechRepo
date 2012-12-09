@@ -1,0 +1,23 @@
+/* 
+*  	@input TestSuiteName: String
+*	@input TestToRun: String
+*	@output TestSuite: Object
+*/
+
+importPackage(dw.system);
+importPackage(dw.util);
+
+importScript("LogError.ds");
+
+importScript("TestSuiteFactory.ds");
+
+function execute(args) {
+	try {
+		var testToRun = args.TestToRun && parseInt(args.TestToRun);
+		args.TestSuite = TestSuiteFactory.getTestSuite(args.TestSuiteName).run(testToRun);
+		return PIPELET_NEXT;
+	} catch (e) {
+		LogError("RunTestSuite.ds", e, args);
+		throw e;
+	};
+};

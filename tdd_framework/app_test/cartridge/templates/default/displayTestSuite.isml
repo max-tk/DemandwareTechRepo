@@ -1,0 +1,428 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<link href="${URLUtils.staticURL('/css/test.css')}" type="text/css" rel="stylesheet"></link>		
+	</head>
+	<body>
+		<div class="title">${(pdict.TestSuite && pdict.TestSuite.getName()) || ''}&nbsp;
+			<span id="totalElapsed"></span>
+			<img id="titleLoader" src="${URLUtils.staticURL('../images/ajax-loader.gif')}" width="32" style="display:none" border="0"/>
+		</div>
+		<div class="secondTitle">			
+			<a href="${URLUtils.http('Tester-Start')}" title="Go Back To List Of Test Suites">Main</a>&nbsp;
+			<span><a id="clearResults" href="#" title="Clear Results">Clear Results</a></span>
+		</div>
+		<div align="center">
+			<table id="testTable" border="1" cellspacing="1" cellpadding="2" width="800px">
+				<thead>
+					<tr>
+						<th colspan='2'><a id="runAllTests" href="#" title="Run All Tests"><img src="${URLUtils.staticURL('../images/greenarrow32.png')}" width="32" border="0"/></a><a id="cancelAllTests" href="#" title="Cancel All Tests" style="display:none"><img src="${URLUtils.staticURL('../images/cancel32.png')}" width="32" border="0"/></a></th>
+						<th>Category</th>
+						<th>Test Name</th>
+						<th>Time (ms)</th>
+						<th>Result</th>
+					</tr>
+				</thead>
+				<tbody>
+					<isloop alias="test" iterator="${pdict.TestSuite.tests}" status="testStatus">
+						<tr>
+							<td>${(testStatus.count-1).toFixed(0)}</td>
+							<td class="runTest"><a href="#" title="Run Test"><img class="startImage" src="${URLUtils.staticURL('../images/greenarrow32.png')}" width="32" border="0"/></a><a href="#" title="Cancel Test"><img class="stopImage" src="${URLUtils.staticURL('../images/cancel32.png')}" width="32" style="display:none" border="0"/></a></td>
+							<td>${test.category}</td>
+							<td>${test.name}
+								<div class="errorMessageDiv" style="display:none">
+									<a href="#" title="hide/show Exception">Exception:</a><br/>
+									<pre style="display:none"></pre>
+								</div>
+								<div class="scriptLogDiv" style="display:none">
+									<a href="#" title="hide/show Scriptlog">Scriptlog:</a><br/>
+									<pre style="display:none"></pre>
+								</div>
+							</td>
+							<td align="center"><span>&nbsp;</span><img src="${URLUtils.staticURL('../images/ajax-loader.gif')}" width="32" style="display:none" border="0"/></td>
+							<td align="center"><span>&nbsp;</span></td>
+						</tr>
+					</isloop>
+				</tbody>
+			</table>
+		</div>
+		<script src="${URLUtils.staticURL('/js/jquery-1.7.2.min.js')}"></script>
+		<script>					
+			function TDD() {				 
+				var _requests = {}, //Each test in the test suite is represented by a "request" and each running "request" is stored in the "_request" dictionary.  
+					_checkRequestInterval = null, //This represents the interval that checks if a test is running and reports the overall status when the tests are done
+					_checkingRequests = false, //Boolean that is set to true when a test is kicked off
+					_pageHelper = PageHelper(),  //Encapsulates jQuery DOM manipulation for the page
+					_tableHelper = TableHelper(); //Encapsulates jQuery DOM manipulation for the table
+				
+				//This function is executed whenever a test is started and kicks off a "setInterval" to run the "checkRequests" function every 10 ms  
+				function startCheckingRequests() {
+					if (_checkingRequests) {
+						return;
+					};
+			        _pageHelper.resetTotalElapsed();
+			        _pageHelper.resetTitleColor();
+			        _pageHelper.showTitleProgressImage();
+			        _checkRequestInterval = setInterval(checkRequests, 10);
+			        _checkingRequests = true;
+				};
+					
+				//This function is called whenever a test is cancelled to update the overall status of the test suite	
+				function stopCheckingRequests() {
+					//if we are not checking requests, or if there are still requests running then return
+				    if (!_checkingRequests || requestsAreRunning()) {
+				        return;
+				    };
+					_checkingRequests = false;
+			        _pageHelper.showClearResultsButton();
+			        _pageHelper.showRunAllButton();
+			        clearInterval(_checkRequestInterval);
+			        updateOverallStatus();
+				};
+				
+				function requestsAreRunning() {
+				    var running = false;
+				    for (var p in _requests) {
+				        if (_requests[p].isRunning()) {
+				            running = true;
+				            break;
+				        };
+				    };
+				    return running;
+				};
+				
+				//If there are no more requests running then stop checking requests
+				function checkRequests() {
+				    _pageHelper.hideClearResultsButton();
+	
+				    if (!requestsAreRunning()) {
+				       stopCheckingRequests();
+				    };
+				};
+				
+				function updateOverallStatus() {
+				    var totalElapsedTime = 0,
+				        passed = true,
+						request = null;
+	
+				    for (var p in _requests) {
+						request = _requests[p];
+				        totalElapsedTime += request.elapsedTime();
+				        if (passed && !request.passed()) {
+				            passed = false;
+				        };
+				    };
+	
+					_requests = {};
+				    _pageHelper.setTotalElapsed(totalElapsedTime);
+				    _pageHelper.setTitleStatusColor(passed);
+				    _pageHelper.hideTitleProgressImage();
+				};
+				
+				function clearResults() {
+				    for (var p in _requests) {
+				        _requests[p].stop();
+				    };
+	
+				    _tableHelper.reset();
+				    _pageHelper.resetTotalElapsed();
+				    _pageHelper.resetTitleColor();
+				};
+				
+				//This function represents a running test request
+				function RequestBuilder(index) {
+				    var _isRunning = false,
+				        _requestTimer = null,
+				        _elapsed = 0,
+				        _passed = false,
+				        _jqXHR = null;
+	
+				    function makeAjaxRequest() {
+				        _jqXHR = $.getJSON("${URLUtils.url('Tester-Run')}", {
+				            "suite": "${pdict.CurrentHttpParameterMap.suite.stringValue}",
+				            "testid": index
+				        }).success(function (data, textStatus, _jqXHR) {
+				            _isRunning = false;
+				            _elapsed = parseInt(data.tests[0].elapsed);
+				            _passed = data.tests[0].passed;
+				            displayRowSuccess(_elapsed, _passed, data.tests[0].exception, data.scriptlog);
+				        }).error(function (_jqXHR, textStatus, errorThrown) {
+				            _isRunning = false;
+				            _elapsed = 0;
+				            _passed = false;
+				            displayRowError(errorThrown);
+				        });
+				    };
+	
+				    function displayRowError(errorThrown) {
+				        _tableHelper.displayError(index, errorThrown);
+				        _tableHelper.clearElapsed(index);
+				        _tableHelper.showStartButton(index);
+				    };
+	
+				    function displayRowSuccess(elapsed, passed, exception, scriptlog) {
+				        _tableHelper.displayElapsed(index, elapsed);
+				        _tableHelper.displayResult(index, passed);
+	
+				        if (!passed) {
+				            _tableHelper.displayException(index, exception.message);
+				        } else {
+				            _tableHelper.clearException(index);
+				        };
+	
+				        if (scriptlog) {
+				            _tableHelper.displayScriptLog(index, scriptlog);
+				        } else {
+				            _tableHelper.clearScriptLog(index);
+				        };
+	
+				        _tableHelper.hideProgressImage(index);
+				        _tableHelper.showStartButton(index);
+				    };
+	
+				    function displayRowReadyToRun() {
+				        _tableHelper.hideProgressImage(index);
+				        _tableHelper.showStartButton(index);
+				    };
+	
+				    function displayRowRunning() {
+				        _tableHelper.clearElapsed(index);
+				        _tableHelper.clearResult(index);
+				        _tableHelper.showProgressImage(index);
+				        _tableHelper.showCancelButton(index);
+				    };
+	
+				    return {
+				        "start": function () {
+				            if (!_isRunning) {
+				                _isRunning = true;
+				                displayRowRunning();
+				                _requestTimer = setTimeout(makeAjaxRequest, 10);
+				            };
+				        },
+				        "stop": function () {
+				            if (_isRunning) {
+				                _isRunning = false;
+				                displayRowReadyToRun();
+				                _jqXHR && _jqXHR.abort();
+				                clearTimeout(_requestTimer);
+				            };
+				        },
+				        "isRunning": function () {
+				            return _isRunning;
+				        },
+				        "elapsedTime": function () {
+				            return _elapsed;
+				        },
+				        "passed": function () {
+				            return _passed
+				        }
+				    };
+				};
+	
+				function TableHelper() {
+				    var START_STOP_INDEX = 1,
+				        TEST_NAME_INDEX = 3,
+				        ELAPSED_INDEX = 4,
+				        PROGRESS_INDEX = 4,
+				        ERROR_INDEX = 5,
+				        RESULT_INDEX = 5,
+				        _rows = $("#testTable tbody").children();
+	
+				    function getCell(rowIndex, colIndex) {
+				        var row = _rows[rowIndex],
+				            cells = $(row).children();
+				        return $(cells[colIndex]);
+				    };
+	
+				    return {
+				        "displayError": function (index, errorThrown) {
+				            getCell(index, ERROR_INDEX).find("span").text(errorThrown).css("color", "red");
+				        },
+				        "displayException": function (index, exceptionMessage) {
+				            var errorMessageDiv = getCell(index, TEST_NAME_INDEX).find("div.errorMessageDiv"),
+				                errorMessagePre = errorMessageDiv.find("pre");
+	
+				            errorMessagePre.text(exceptionMessage);
+				            errorMessageDiv.show();
+				        },
+				        "clearException": function (index) {
+				            var errorMessageDiv = getCell(index, TEST_NAME_INDEX).find("div.errorMessageDiv"),
+				                errorMessagePre = errorMessageDiv.find("pre");
+	
+				            errorMessagePre.text("");
+				            errorMessageDiv.hide();
+				        },
+				        "displayScriptLog": function (index, scriptlog) {
+				            var scriptLogDiv = getCell(index, TEST_NAME_INDEX).find("div.scriptLogDiv"),
+				                scriptLogPre = scriptLogDiv.find("pre");
+	
+				            scriptLogPre.text(scriptlog);
+				            scriptLogDiv.show();
+				        },
+				        "clearScriptLog": function (index, scriptlog) {
+				            var scriptLogDiv = getCell(index, TEST_NAME_INDEX).find("div.scriptLogDiv"),
+				                scriptLogPre = scriptLogDiv.find("pre");
+	
+				            scriptLogPre.text("");
+				            scriptLogDiv.hide();
+				        },
+				        "displayElapsed": function (index, elapsed) {
+				            getCell(index, ELAPSED_INDEX).find("span").text(elapsed);
+				        },
+				        "clearElapsed": function (index) {
+				            getCell(index, ELAPSED_INDEX).find("span").html("&nbsp;");
+				        },
+				        "displayResult": function (index, passed) {
+				            getCell(index, RESULT_INDEX).find("span").text(passed ? "Passed" : "Fail").css("color", passed ? "green" : "red");
+				        },
+				        "clearResult": function (index) {
+				            getCell(index, RESULT_INDEX).find("span").html("&nbsp;");
+				        },
+				        "showCancelButton": function (index) {
+				            var cell = getCell(index, START_STOP_INDEX);
+	
+				            cell.find(".stopImage").show();
+				            cell.find(".startImage").hide();
+				        },
+				        "showStartButton": function (index) {
+				            var cell = getCell(index, START_STOP_INDEX);
+	
+				            cell.find(".stopImage").hide();
+				            cell.find(".startImage").show();
+				        },
+				        "showProgressImage": function (index) {
+				            getCell(index, PROGRESS_INDEX).find("img").show();
+				        },
+				        "hideProgressImage": function (index) {
+				            getCell(index, PROGRESS_INDEX).find("img").hide();
+				        },
+				        "reset": function () {
+				            _rows.each(function (index) {
+				                getCell(index, ELAPSED_INDEX).find("span").html("&nbsp;");
+				                getCell(index, RESULT_INDEX).find("span").html("&nbsp;").css("color", "");
+				            });
+							this.hideScriptLog();
+					    	this.hideErrorMessage();
+		
+				        },
+				        "hideScriptLog": function () {
+				            $("div.scriptLogDiv").hide();
+				            $("div.scriptLogDiv > pre").hide();
+				        },
+				        "hideErrorMessage": function () {
+				            $("div.errorMessageDiv").hide();
+				            $("div.errorMessageDiv > pre").hide();
+				        }
+				    };
+				};
+	
+				function PageHelper() {
+				    var _titleLoader = $("#titleLoader"),
+				        _totalElapsed = $("#totalElapsed"),
+				        _title = $("div.title"),
+				        _clearResults = $("#clearResults"),
+				        _cancelAllTests = $("#cancelAllTests"),
+				        _runAllTests = $("#runAllTests");
+	
+				    return {
+				        "showTitleProgressImage": function () {
+				            _titleLoader.show();
+				        },
+				        "hideTitleProgressImage": function () {
+				            _titleLoader.hide();
+				        },
+				        "setTotalElapsed": function (elapsed) {
+				            _totalElapsed.text("(" + elapsed + " ms)");
+				        },
+				        "resetTotalElapsed": function () {
+				            _totalElapsed.text("");
+				        },
+				        "setTitleStatusColor": function (passed) {
+				            _title.css("color", passed ? "green" : "red");
+				        },
+				        "resetTitleColor": function () {
+				            _title.css("color", "");
+				        },
+				        "showClearResultsButton": function () {
+				            _clearResults.show();
+				        },
+				        "hideClearResultsButton": function () {
+				            _clearResults.hide();
+				        },
+				        "showRunAllButton": function () {
+				            _cancelAllTests.hide();
+				            _runAllTests.show();
+				        },
+				        "showCancelAllButton": function () {
+				            _runAllTests.hide();
+				            _cancelAllTests.show();
+				        }
+				    }
+				};
+				
+				return {
+					"init": function () {
+							//set infinite timeout in jQuery
+							$.ajaxSetup({
+							    "timeout": 0
+							});
+							//setup click event for individual test
+							$("#testTable tbody").on("click", "td.runTest", function (e) {
+						        var currentRow = $(this).parent(),
+						            index = currentRow.find("td:first-child").text(),
+						            request = _requests[index];
+								//if the test is already running then cancel it	
+						        if (request && request.isRunning()) {
+						            request.stop();
+						            stopCheckingRequests();
+						        } else {
+									//create a new request and start it
+						            request = RequestBuilder(index); 
+						            _requests[index] = request;
+						            request.start();
+						            startCheckingRequests();
+						        };
+								e.preventDefault();
+						    });
+							//setup the click event that runs all tests
+							$("#runAllTests").on("click", function (e) {
+						        _pageHelper.showCancelAllButton();
+			
+						        for (var p in _requests) {
+						            _requests[p].stop();
+						        };
+			
+						        _requests = {};
+			
+						        $("td.runTest").trigger("click");
+								e.preventDefault();
+						    });
+							//setup the click event to cancel all running tests	
+						    $("#cancelAllTests").on("click", function (e) {
+						        _pageHelper.showRunAllButton();
+			
+						        for (var p in _requests) {
+						            _requests[p].stop();
+						        };
+								e.preventDefault();
+						    });
+							
+						    $("#clearResults").on("click", function (e) {
+						        clearResults();
+								e.preventDefault();
+						    });
+							//this event handles the visibility of the "exception" and "scriptlog" links that may appear when a test completes 	
+						    $("#testTable tbody").on("click", "a", function (e) {
+						        $(this).parent().find("pre").toggle();
+								e.preventDefault();
+						    });						    
+						}
+				};				
+			};		
+			
+			$(window).load(function () {
+				TDD().init();
+			});
+		</script>
+	</body>	
+</html>
