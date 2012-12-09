@@ -1,4 +1,4 @@
-﻿importPackage(dw.system);
+importPackage(dw.system);
 importPackage(dw.util);
 importPackage(dw.net);
 importPackage(dw.web);
@@ -23,7 +23,7 @@ function NewsLetterTestSuite() {
 			var httpClient = new HTTPClient();
 			
 			//Act
-			httpClient.open("POST", URLUtils.http("NewsLetter-SignUp", "email", "jorge.matos@callawaygolf.com"));
+			httpClient.open("GET", URLUtils.http("NewsLetter-SignUp", "email", "jorge.matos@callawaygolf.com"));
 			httpClient.send();
 			
 			//Assert		
@@ -38,7 +38,7 @@ function NewsLetterTestSuite() {
 			var httpClient = new HTTPClient();
 			
 			//Act
-			httpClient.open("POST", URLUtils.http("NewsLetter-SignUp"));
+			httpClient.open("GET", URLUtils.http("NewsLetter-SignUp"));
 			httpClient.send();
 			
 			//Assert		

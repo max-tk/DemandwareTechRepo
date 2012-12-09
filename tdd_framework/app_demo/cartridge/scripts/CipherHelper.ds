@@ -1,4 +1,4 @@
-﻿importPackage(dw.system);
+importPackage(dw.system);
 importPackage(dw.catalog);
 importPackage(dw.util);
 importPackage(dw.crypto);
