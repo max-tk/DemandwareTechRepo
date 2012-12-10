@@ -33,6 +33,13 @@ function CipherHelper() {};
 		} else {
 			return stringToDecrypt;
 		}
+	};	
+	
+	CipherHelper.throwException = function () {
+		throw Error("demo exception");
+	};
+	
+	CipherHelper.doesNotThrowException = function () {		
 	};
 	
 	return CipherHelper;

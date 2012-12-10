@@ -38,14 +38,14 @@ function TestSuiteBase() {
 							this.testTearDown();
 						};
 					};
-					
-					if ((typeof test.expectedError != "undefined") && test.expectedError) {
-						test.passed = false;
-						test.exception = { message: "Error was expected but it wasn't thrown" };
-					}
-					else {
-						test.passed = true;
-					}			
+
+					if ((typeof test.expectedError !== "undefined") && test.expectedError) {
+                        test.passed = false;
+                        test.exception = { message: "Exception was expected but it wasn't thrown. Expected error: " + test.expectedError};
+                    }
+                    else {
+                        test.passed = true;
+                    }								
 				} catch (e) {
 					errorMessage = StringUtils.rtrim(e.message);
 					if ((typeof test.expectedError != "undefined") && test.expectedError) {
