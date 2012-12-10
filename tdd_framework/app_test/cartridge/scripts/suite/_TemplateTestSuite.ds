@@ -1,4 +1,4 @@
-﻿importPackage(dw.system);
+importPackage(dw.system);
 importPackage(dw.util);
 importPackage(dw.net);
 importPackage(dw.web);

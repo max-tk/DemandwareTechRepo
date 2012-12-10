@@ -1,4 +1,4 @@
-﻿importPackage(dw.system);
+importPackage(dw.system);
 
 function LogError(funcName, error, args) {
 	Logger.debug("----------------------------------------------------------------------------------------------------------------");

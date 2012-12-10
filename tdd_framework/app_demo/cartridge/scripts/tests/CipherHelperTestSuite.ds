@@ -1,13 +1,13 @@
-﻿importPackage(dw.system);
+importPackage(dw.system);
 importPackage(dw.util);
 importPackage(dw.net);
 importPackage(dw.web);
 importPackage(dw.crypto);
 
-importScript("Assert.ds");
-importScript("TestSuiteBase.ds");
+importScript("app_test:Assert.ds");
+importScript("app_test:TestSuiteBase.ds");
 
-importScript("app_demo:CipherHelper.ds");
+importScript("CipherHelper.ds");
 
 function CipherHelperTestSuite() {
 	let suite = TestSuiteBase();

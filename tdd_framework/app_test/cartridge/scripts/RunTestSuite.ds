@@ -1,5 +1,6 @@
 /* 
 *  	@input TestSuiteName: String
+*  	@input TestSuiteCartridge: String
 *	@input TestToRun: String
 *	@output TestSuite: Object
 */
@@ -14,7 +15,7 @@ importScript("TestSuiteFactory.ds");
 function execute(args) {
 	try {
 		var testToRun = args.TestToRun && parseInt(args.TestToRun);
-		args.TestSuite = TestSuiteFactory.getTestSuite(args.TestSuiteName).run(testToRun);
+		args.TestSuite = TestSuiteFactory.getTestSuite(args.TestSuiteName, args.TestSuiteCartridge).run(testToRun);
 		return PIPELET_NEXT;
 	} catch (e) {
 		LogError("RunTestSuite.ds", e, args);

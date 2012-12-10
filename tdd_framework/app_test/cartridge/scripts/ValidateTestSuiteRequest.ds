@@ -1,0 +1,15 @@
+importPackage( dw.system );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	var checkParameterPresent = function(parameterName : String) {
+		return args.CurrentHttpParameterMap.isParameterSubmitted(parameterName) &&
+				!empty(args.CurrentHttpParameterMap[parameterName].stringValue);
+	};
+	
+	if ( !checkParameterPresent("suite") || !checkParameterPresent("cartridge") ) {
+		return PIPELET_ERROR;
+	}
+
+	return PIPELET_NEXT;
+}

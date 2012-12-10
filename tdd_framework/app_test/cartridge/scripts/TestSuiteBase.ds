@@ -38,9 +38,14 @@ function TestSuiteBase() {
 							this.testTearDown();
 						};
 					};
-
-					test.passed = true;		
-								
+					
+					if ((typeof test.expectedError != "undefined") && test.expectedError) {
+						test.passed = false;
+						test.exception = { message: "Error was expected but it wasn't thrown" };
+					}
+					else {
+						test.passed = true;
+					}			
 				} catch (e) {
 					errorMessage = StringUtils.rtrim(e.message);
 					if ((typeof test.expectedError != "undefined") && test.expectedError) {

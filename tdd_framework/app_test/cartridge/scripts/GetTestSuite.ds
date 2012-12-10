@@ -1,5 +1,6 @@
-﻿/* 
+/* 
 *  	@input TestSuiteName : String
+*	@input TestSuiteCartridge : String
 *	@output TestSuite : Object
 */
 
@@ -11,7 +12,7 @@ importScript("TestSuiteFactory.ds");
 
 function execute(args) {
 	try {
-		var suite = TestSuiteFactory.getTestSuite(args.TestSuiteName);
+		var suite = TestSuiteFactory.getTestSuite(args.TestSuiteName, args.TestSuiteCartridge);
 		args.TestSuite = suite;
 		return PIPELET_NEXT;
 	} catch (e) {

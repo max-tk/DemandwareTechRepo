@@ -139,6 +139,7 @@
 				    function makeAjaxRequest() {
 				        _jqXHR = $.getJSON("${URLUtils.url('Tester-Run')}", {
 				            "suite": "${pdict.CurrentHttpParameterMap.suite.stringValue}",
+				            "cartridge": "${pdict.CurrentHttpParameterMap.cartridge.stringValue}",
 				            "testid": index
 				        }).success(function (data, textStatus, _jqXHR) {
 				            _isRunning = false;

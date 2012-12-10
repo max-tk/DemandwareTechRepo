@@ -1,4 +1,4 @@
-﻿importPackage(dw.system);
+importPackage(dw.system);
 importPackage(dw.util);
 
 function Assert() {};
@@ -23,7 +23,7 @@ function Assert() {};
 
 	Assert.isEmpty = function (value, name, message) {
 		this.isTrue(empty(value), StringUtils.format("Assert.isEmpty(): {0} was not empty! {1}", (name || "object"), message ? "\n" + message : ""));
-	}
+	};
 
 	Assert.isNotEmpty = function (value, name, message) {
 		this.isTrue(!empty(value), StringUtils.format("Assert.isNotEmpty(): {0} was empty! {1}", (name || "object"), message ? "\n" + message : ""));
