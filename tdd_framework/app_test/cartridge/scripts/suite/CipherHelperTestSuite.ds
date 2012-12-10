@@ -1,4 +1,4 @@
-﻿importPackage(dw.system);
+importPackage(dw.system);
 importPackage(dw.util);
 importPackage(dw.net);
 importPackage(dw.web);
@@ -105,7 +105,24 @@ function CipherHelperTestSuite() {
 				expected = null;
 			Assert.areEqual(expected, actual);
 		}
-	}];
+	}, {
+		"name": "CipherHelper_testing_expected_exception_where_code_does_throw_exception",
+		"category": "Error",
+		"ignore": false,
+		"expectedError": "demo exception",
+		"run": function () {
+			CipherHelper.throwException();			
+		}
+	},{
+		"name": "CipherHelper_testing_expected_exception_where_code_does_not_throw_exception",
+		"category": "Error",
+		"ignore": false,
+		"expectedError": "demo exception",
+		"run": function () {
+			CipherHelper.doesNotThrowException();			
+		}
+	}
+	];
 
 	return suite;
 };
